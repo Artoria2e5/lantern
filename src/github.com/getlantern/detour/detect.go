@@ -37,6 +37,9 @@ func init() {
 	}
 }
 
+var http302 = []byte("HTTP/1.1 302 Moved Temporarily")
+var merakiRedir = []byte("\r\nLocation: http://wired.meraki.com:8090/blocked.cgi")
+
 var defaultDetector = Detector{
 	DNSPoisoned: func(net.Conn) bool { return false },
 	TamperingSuspected: func(err error) bool {
@@ -53,7 +56,9 @@ var defaultDetector = Detector{
 		}
 		return false
 	},
-	FakeResponse: func([]byte) bool { return false },
+	FakeResponse: func(b []byte) bool {
+		return bytes.HasPrefix(b, http302) && bytes.Contains(b, merakiRedir)
+	},
 }
 
 func detectorByCountry(country string) *Detector {
